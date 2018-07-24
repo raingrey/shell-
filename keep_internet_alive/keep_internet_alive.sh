@@ -15,11 +15,15 @@ fi
 
 if [ $# -eq 3 ]
 then
-echo "检测间隔：$3"
-interval_time=$3
+	echo "检测间隔：$3"
+	interval_time=$3
+	if [ $interval_time -eq 0 ]
+	then
+	interval_time=1
+	fi
 else
-interval_time=10
-echo "检测间隔：10"
+	interval_time=10
+	echo "检测间隔：10"
 fi
 
 log_name="log1"
@@ -31,24 +35,25 @@ while true
 do
 	for url in "8.8.8.8" "61.139.2.69" "114.114.114.114" "168.95.1.1" "223.5.5.5" "180.76.76.76"
 	do
-		echo "PING ${url}">>$log_name
+		echo "PING $url">>$log_name
 
 		ping=`ping -c 3 ${url}|awk 'NR==7 {print $4}'`
-
-		if [ ${ping} -eq 0 ]
-		then
-			ping_ok=0
-			echo "ping:${url} fault!">>$log_name
-		else
-			ping_ok=1
-			echo "ping:${url} ok!">>$log_name
-			break
-		fi
+		echo "ping结果是：$ping"
+                if [ "$ping" = "" ]
+                then
+                        ping_ok=0
+                        echo "ping:${url} fault!">>$log_name
+                else
+                        ping_ok=1
+                        echo "ping:${url} ok!">>$log_name
+                        break
+                fi
+		echo "ping_ok为：$ping_ok"
 	done
 #检测结果处理
 	if [ ${ping_ok} -ne 1 ]
 	then
-		curl -d "opr=pwdLogin&pwd=$passwd&rememberPwd=1&userName=$user" http://1.1.1.3/ac_portal/log_namein.php
+		curl -d "opr=pwdLogin&pwd="$passwd"&rememberPwd=1&userName="$user http://1.1.1.3/ac_portal/login.php
 		echo "发生重新登录">>$log_name
 	fi
 
